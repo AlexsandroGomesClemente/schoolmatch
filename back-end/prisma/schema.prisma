@@ -28,6 +28,7 @@ model Like {
   id        String   @id @default(uuid())
   userId    String
   targetId  String
+  like      Boolean
   createdAt DateTime @default(now())
 
   user   User @relation("likesGiven", fields: [userId], references: [id])
