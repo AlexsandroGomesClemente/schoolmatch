@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, Image, StyleSheet } from "react-native";
+import Constants from "expo-constants";
+const apiUrl = Constants.expoConfig.extra.API_URL;
 import axios from "axios";
 
 interface Match {
@@ -18,7 +20,7 @@ export default function MatchesScreen() {
 
   const fetchMatches = async () => {
     try {
-      const response = await axios.get("http://localhost:3333/matches");
+      const response = await axios.get(`${apiUrl}/matches`);
       setMatches(response.data.matches); // Assumindo que backend retorna { matches: [...] }
     } catch (error) {
       console.error(error);

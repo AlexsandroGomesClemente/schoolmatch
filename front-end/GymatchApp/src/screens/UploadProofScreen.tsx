@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, Button, Image, StyleSheet, Alert } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import Constants from "expo-constants";
+const apiUrl = Constants.expoConfig.extra.API_URL;
 import axios from "axios";
 
 export default function UploadProofScreen() {
@@ -33,7 +35,7 @@ export default function UploadProofScreen() {
     } as any);
 
     try {
-      const response = await axios.post("http://localhost:3333/documents", formData, {
+      const response = await axios.post(`${apiUrl}/documents`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       setStatus(response.data.status); // backend deve retornar { status: "aprovado" | "reprovado" }
@@ -55,7 +57,12 @@ export default function UploadProofScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", alignItems: "center", padding: 20 },
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
   title: { fontSize: 20, marginBottom: 20, textAlign: "center" },
   image: { width: 250, height: 250, marginVertical: 20, borderRadius: 10 },
   status: { fontSize: 18, marginTop: 20, fontWeight: "bold" },

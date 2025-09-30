@@ -1,12 +1,16 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import WelcomeScreen from "../screens/WelcomeScreen"; // nova tela inicial
 import OnboardingScreen from "../screens/OnboardingScreen";
+import RegisterScreen from "../screens/RegisterScreen";
 import HomeScreen from "../screens/HomeScreen";
 import MatchesScreen from "../screens/MatchesScreen";
 
 export type RootStackParamList = {
+  Welcome: undefined;
   Onboarding: undefined;
+  Register: undefined;
   Home: undefined;
   Matches: undefined;
 };
@@ -17,7 +21,9 @@ export default function AppNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Welcome" component={WelcomeScreen} />
         <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+        <Stack.Screen name="Register" component={RegisterScreen} />
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Matches" component={MatchesScreen} />
       </Stack.Navigator>

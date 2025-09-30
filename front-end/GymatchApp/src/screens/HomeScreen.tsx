@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import Constants from "expo-constants";
+const apiUrl = Constants.expoConfig.extra.API_URL;
 import {
   View,
   Text,
@@ -27,8 +29,10 @@ export default function HomeScreen() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("http://localhost:3333/users");
-      setUsers(response.data.users); // Assumindo que o backend retorna { users: [...] }
+      const response = await axios.get(`${apiUrl}/users`);
+
+      console.log(response.data, 'response')
+      setUsers(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -37,7 +41,7 @@ export default function HomeScreen() {
   const handleSwipe = async (liked: boolean) => {
     const user = users[currentIndex];
     try {
-      await axios.post("http://localhost:3333/likes", {
+      await axios.post(`${apiUrl}/likes`, {
         userId: user.id,
         liked,
       });
