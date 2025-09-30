@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  course    String?
+  photo_url String?
+  createdAt DateTime @default(now())
+
+  likesGiven Like[]     @relation("likesGiven")
+  likesGot   Like[]     @relation("likesGot")
+  matches1   Match[]    @relation("user1")
+  matches2   Match[]    @relation("user2")
+  documents  Document[]
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  targetId  String
+  createdAt DateTime @default(now())
+
+  user   User @relation("likesGiven", fields: [userId], references: [id])
+  target User @relation("likesGot", fields: [targetId], references: [id])
+
+  @@unique([userId, targetId])
+}
+
+model Match {
+  id        String   @id @default(uuid())
+  user1Id   String
+  user2Id   String
+  createdAt DateTime @default(now())
+
+  user1 User @relation("user1", fields: [user1Id], references: [id])
+  user2 User @relation("user2", fields: [user2Id], references: [id])
+
+  @@unique([user1Id, user2Id])
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  userId    String
+  file_url  String
+  approved  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
