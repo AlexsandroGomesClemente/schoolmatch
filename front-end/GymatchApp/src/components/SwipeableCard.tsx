@@ -1,5 +1,17 @@
-import React from "react";
-import { View, Text, Image, StyleSheet, Dimensions, PanResponder, Animated } from "react-native";
+import React, { useRef } from "react";
+import {
+  View,
+  Text,
+  Image,
+  StyleSheet,
+  Animated,
+  PanResponder,
+  Dimensions,
+} from "react-native";
+
+const SCREEN_WIDTH = Dimensions.get("window").width;
+const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
+const SWIPE_OUT_DURATION = 250;
 
 interface User {
   id: string;
@@ -8,56 +20,101 @@ interface User {
   avatar?: string;
 }
 
-interface Props {
+interface SwipeableCardProps {
   user: User;
-  onSwipeLeft: () => void;
   onSwipeRight: () => void;
+  onSwipeLeft: () => void;
 }
 
-const SCREEN_WIDTH = Dimensions.get("window").width;
+export default function SwipeableCard({
+  user,
+  onSwipeRight,
+  onSwipeLeft,
+}: SwipeableCardProps) {
+  const position = useRef(new Animated.ValueXY()).current;
 
-export default function SwipeableCard({ user, onSwipeLeft, onSwipeRight }: Props) {
-  const position = React.useRef(new Animated.ValueXY()).current;
+  const forceSwipe = (direction: "right" | "left") => {
+    const x = direction === "right" ? SCREEN_WIDTH : -SCREEN_WIDTH;
+    Animated.timing(position, {
+      toValue: { x, y: 0 },
+      duration: SWIPE_OUT_DURATION,
+      useNativeDriver: false,
+    }).start(() => onSwipeComplete(direction));
+  };
 
-  const panResponder = React.useRef(
+  const onSwipeComplete = (direction: "right" | "left") => {
+    direction === "right" ? onSwipeRight() : onSwipeLeft();
+    position.setValue({ x: 0, y: 0 });
+  };
+
+  const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onPanResponderMove: (_, gesture) => {
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > 120) {
-          Animated.timing(position, { toValue: { x: SCREEN_WIDTH + 100, y: gesture.dy }, useNativeDriver: false, duration: 200 }).start(() => onSwipeRight());
-        } else if (gesture.dx < -120) {
-          Animated.timing(position, { toValue: { x: -SCREEN_WIDTH - 100, y: gesture.dy }, useNativeDriver: false, duration: 200 }).start(() => onSwipeLeft());
+        if (gesture.dx > SWIPE_THRESHOLD) {
+          forceSwipe("right");
+        } else if (gesture.dx < -SWIPE_THRESHOLD) {
+          forceSwipe("left");
         } else {
-          Animated.spring(position, { toValue: { x: 0, y: 0 }, useNativeDriver: false }).start();
+          Animated.spring(position, {
+            toValue: { x: 0, y: 0 },
+            useNativeDriver: false,
+            friction: 5,
+          }).start();
         }
       },
     })
   ).current;
 
+  const rotate = position.x.interpolate({
+    inputRange: [-SCREEN_WIDTH, 0, SCREEN_WIDTH],
+    outputRange: ["-10deg", "0deg", "10deg"],
+    extrapolate: "clamp",
+  });
+
+  const cardStyle = {
+    ...position.getLayout(),
+    transform: [{ rotate }],
+  };
+
   return (
     <Animated.View
       {...panResponder.panHandlers}
-      style={[position.getLayout(), styles.card]}
+      style={[styles.card, cardStyle]}
     >
-      {user.avatar && <Image source={{ uri: user.avatar }} style={styles.avatar} />}
+      {user.avatar && (
+        <Image source={{ uri: user.avatar }} style={styles.avatar} />
+      )}
       <Text style={styles.name}>{user.name}</Text>
-      <Text>{user.email}</Text>
+      <Text style={styles.email}>{user.email}</Text>
     </Animated.View>
   );
 }
-
 const styles = StyleSheet.create({
   card: {
     width: SCREEN_WIDTH - 40,
     padding: 20,
-    borderRadius: 10,
     backgroundColor: "#fff",
-    elevation: 5,
-    alignItems: "center",
+    borderRadius: 10,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+
+
+    alignSelf: "center",
+    top: 0, 
   },
-  avatar: { width: 150, height: 150, borderRadius: 75, marginBottom: 10 },
-  name: { fontSize: 22, fontWeight: "bold" },
+  avatar: {
+    width: "100%",
+    height: 200,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  name: { fontSize: 20, fontWeight: "bold" },
+  email: { fontSize: 16, color: "#666" },
 });

@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const apiUrl = Constants.expoConfig.extra.API_URL;
 import {
   View,
@@ -25,6 +26,7 @@ export default function OnboardingScreen({ navigation }: any) {
       });
       if (response.data.ok) {
         Alert.alert("Login realizado!");
+        await AsyncStorage.setItem("user", JSON.stringify(response.data.user));
         navigation.navigate("Home");
       }
     } catch (error) {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Constants from "expo-constants";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 const apiUrl = Constants.expoConfig.extra.API_URL;
 import {
   View,
@@ -31,26 +32,34 @@ export default function HomeScreen() {
     try {
       const response = await axios.get(`${apiUrl}/users`);
 
-      console.log(response.data, 'response')
+      console.log(response.data, "response");
       setUsers(response.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleSwipe = async (liked: boolean) => {
-    const user = users[currentIndex];
-    try {
-      await axios.post(`${apiUrl}/likes`, {
-        userId: user.id,
-        liked,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+ const handleSwipe = async (liked: boolean) => {
+  const user = users[currentIndex]; // pega o usuário atual antes de atualizar o índice
+  setCurrentIndex((prev) => prev + 1); // mostra o próximo card imediatamente
 
-    setCurrentIndex(currentIndex + 1);
-  };
+  // Salva o like em background
+  try {
+    const myUser = await AsyncStorage.getItem("user");
+    const userObj = myUser ? JSON.parse(myUser) : null;
+
+    if (userObj) {
+      await axios.post(`${apiUrl}/likes`, {
+        userId: userObj.id,
+        targetId: user.id,
+        like: liked,
+      });
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
 
   if (users.length === 0) {
     return (
